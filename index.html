@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Orbit - Initiative Management Platform</title>
+    <style>
+        /* Reset and Base Styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background: #f8fafc; 
+            color: #1e293b; 
+            line-height: 1.6; 
+        }
+        
+        /* Layout */
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { 
+            background: white; 
+            padding: 1rem 0; 
+            border-bottom: 1px solid #e2e8f0; 
+            margin-bottom: 2rem; 
+        }
+        .nav { display: flex; gap: 1rem; margin-bottom: 2rem; }
+        
+        /* Components */
+        .btn { 
+            padding: 0.5rem 1rem; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: 500; 
+            transition: all 0.2s; 
+        }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-secondary { background: #64748b; color: white; }
+        .btn-secondary:hover { background: #475569; }
+        
+        .card { 
+            background: white; 
+            border-radius: 8px; 
+            padding: 1.5rem; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+            margin-bottom: 1rem; 
+        }
+        
+        /* Orbit Navigation */
+        .orbit-tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
+        .orbit-tab { 
+            padding: 0.75rem 1.5rem; 
+            border: 1px solid #e2e8f0; 
+            background: white; 
+            border-radius: 6px; 
+            cursor: pointer; 
+        }
+        .orbit-tab.active { 
+            background: #3b82f6; 
+            color: white; 
+            border-color: #3b82f6; 
+        }
+        
+        /* Project Grid */
+        .project-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
+            gap: 1.5rem; 
+            margin-bottom: 2rem; 
+        }
+        .project-card { 
+            background: white; 
+            border-radius: 8px; 
+            padding: 1.5rem; 
+            border: 1px solid #e2e8f0; 
+        }
+        .project-header { 
+            display: flex; 
+            justify-content: between; 
+            align-items: start; 
+            margin-bottom: 1rem; 
+        }
+        .project-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; }
+        
+        /* Status Badges */
+        .status-badge { 
+            padding: 0.25rem 0.75rem; 
+            border-radius: 20px; 
+            font-size: 0.875rem; 
+            font-weight: 500; 
+        }
+        .status-active { background: #dcfce7; color: #166534; }
+        .status-planning { background: #fef3c7; color: #92400e; }
+        .status-bau { background: #dbeafe; color: #1e40af; }
+        .status-completed { background: #f1f5f9; color: #475569; }
+        
+        /* Milestones */
+        .milestones { margin: 1rem 0; }
+        .milestone { 
+            display: inline-block; 
+            padding: 0.25rem 0.75rem; 
+            margin: 0.25rem; 
+            border-radius: 4px; 
+            font-size: 0.875rem; 
+        }
+        .milestone-completed { background: #dcfce7; color: #166534; }
+        .milestone-in-progress { background: #fef3c7; color: #92400e; }
+        .milestone-upcoming { background: #f1f5f9; color: #64748b; }
+        
+        /* Modal */
+        .modal { 
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.5); 
+            z-index: 1000; 
+        }
+        .modal-content { 
+            background: white; 
+            margin: 5% auto; 
+            padding: 2rem; 
+            border-radius: 8px; 
+            max-width: 500px; 
+            max-height: 80vh; 
+            overflow-y: auto; 
+        }
+        .form-group { margin-bottom: 1rem; }
+        .form-label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+        .form-input, .form-select, .form-textarea { 
+            width: 100%; 
+            padding: 0.5rem; 
+            border: 1px solid #d1d5db; 
+            border-radius: 4px; 
+        }
+        .form-textarea { min-height: 100px; resize: vertical; }
+        
+        /* Report Section */
+        .report-section { margin: 2rem 0; }
+        .report-preview { 
+            background: #f8fafc; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 6px; 
+            padding: 1.5rem; 
+            margin: 1rem 0; 
+            white-space: pre-wrap; 
+            font-family: monospace; 
+        }
+        
+        /* Utility Classes */
+        .hidden { display: none; }
+        .flex { display: flex; }
+        .justify-between { justify-content: space-between; }
+        .items-center { align-items: center; }
+        .gap-4 { gap: 1rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-lg { font-size: 1.125rem; }
+        .font-semibold { font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>🚀 Project Orbit</h1>
+            <p class="text-sm">Modular Initiative Management Platform</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Orbit Navigation -->
+        <div class="orbit-tabs">
+            <button class="orbit-tab active" data-orbit="vulnerability">
+                🛡️ Vulnerability Management
+            </button>
+            <button class="orbit-tab" data-orbit="training">
+                👥 Security Training
+            </button>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-between items-center mb-4">
+            <div>
+                <button class="btn btn-primary" id="addProjectBtn">+ Add New Project</button>
+            </div>
+            <div class="flex gap-4">
+                <button class="btn btn-secondary" id="generateReportBtn">📊 Generate Report</button>
+            </div>
+        </div>
+
+        <!-- Projects Grid -->
+        <div id="projectsContainer">
+            <!-- Projects will be dynamically inserted here -->
+        </div>
+
+        <!-- Report Preview -->
+        <div class="report-section hidden" id="reportSection">
+            <h2 class="text-lg font-semibold mb-4">Generated Report</h2>
+            <div class="report-preview" id="reportPreview"></div>
+            <button class="btn btn-primary" id="downloadPdfBtn">📥 Download PDF</button>
+        </div>
+    </div>
+
+    <!-- Add Project Modal -->
+    <div class="modal" id="projectModal">
+        <div class="modal-content">
+            <h2 class="text-lg font-semibold mb-4" id="modalTitle">Add New Project</h2>
+            <form id="projectForm">
+                <div class="form-group">
+                    <label class="form-label">Project Name</label>
+                    <input type="text" class="form-input" id="projectName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Orbit Type</label>
+                    <select class="form-select" id="projectOrbit" required>
+                        <option value="vulnerability">Vulnerability Management</option>
+                        <option value="training">Security Training</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" id="projectStatus" required>
+                        <option value="active">Active</option>
+                        <option value="planning">Planning</option>
+                        <option value="bau">Business as Usual</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Milestones (one per line, format: Name|Status|Date)</label>
+                    <textarea class="form-textarea" id="projectMilestones" placeholder="Initial Scan|completed|2024-10-15&#10;Patch Deployment|in-progress|2024-12-15"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Current Tasks (one per line, format: Task|Owner|Due Date)</label>
+                    <textarea class="form-textarea" id="projectTasks" placeholder="Coordinate with IT Team|You|2024-12-13&#10;Schedule maintenance|Operations|2024-12-14"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Recent Update</label>
+                    <textarea class="form-textarea" id="projectUpdate" placeholder="Brief project update..."></textarea>
+                </div>
+                <div class="flex gap-4">
+                    <button type="submit" class="btn btn-primary">Save Project</button>
+                    <button type="button" class="btn btn-secondary" id="cancelModalBtn">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Project Orbit Application
+        const ProjectOrbit = {
+            currentOrbit: 'vulnerability',
+            editingProjectId: null,
+            
+            // Sample data - your 4 projects
+            projects: {
+                vulnerability: [
+                    {
+                        id: 1,
+                        name: "Q4 Critical Server Patching",
+                        status: "active",
+                        milestones: [
+                            { name: "Vulnerability Assessment", status: "completed", date: "2024-10-15" },
+                            { name: "Emergency Patches Deployed", status: "in-progress", date: "2024-12-15" },
+                            { name: "Verification & Testing", status: "upcoming", date: "2025-01-10" }
+                        ],
+                        tasks: [
+                            { name: "Coordinate with Windows Server team", owner: "You", dueDate: "2024-12-13" },
+                            { name: "Schedule maintenance window", owner: "IT Operations", dueDate: "2024-12-14" }
+                        ],
+                        recentUpdate: "Identified 12 critical vulnerabilities across 45 servers, 60% patched so far",
+                        lastUpdated: new Date().toISOString()
+                    },
+                    {
+                        id: 2,
+                        name: "Network Security Hardening",
+                        status: "planning",
+                        milestones: [
+                            { name: "Firewall Rule Review", status: "upcoming", date: "2024-12-20" },
+                            { name: "Switch Configuration Audit", status: "upcoming", date: "2025-01-15" },
+                            { name: "Implementation Complete", status: "upcoming", date: "2025-02-28" }
+                        ],
+                        tasks: [
+                            { name: "Gather current network diagrams", owner: "Network Team", dueDate: "2024-12-18" },
+                            { name: "Define security baseline requirements", owner: "You", dueDate: "2024-12-22" }
+                        ],
+                        recentUpdate: "Project kickoff completed, gathering requirements from network team",
+                        lastUpdated: new Date().toISOString()
+                    }
+                ],
+                training: [
+                    {
+                        id: 1,
+                        name: "2024 Security Awareness Training",
+                        status: "active",
+                        milestones: [
+                            { name: "Training Content Developed", status: "completed", date: "2024-11-01" },
+                            { name: "Department Rollouts", status: "in-progress", date: "2024-12-20" },
+                            { name: "100% Completion Target", status: "upcoming", date: "2025-01-30" }
+                        ],
+                        tasks: [
+                            { name: "Follow up with HR department compliance", owner: "You", dueDate: "2024-12-16" },
+                            { name: "Send reminder emails to Engineering", owner: "Training Team", dueDate: "2024-12-15" }
+                        ],
+                        recentUpdate: "Overall completion at 65%, IT department leading with 95% completion",
+                        lastUpdated: new Date().toISOString()
+                    },
+                    {
+                        id: 2,
+                        name: "Q4 Phishing Simulation",
+                        status: "bau",
+                        milestones: [
+                            { name: "Campaign Design Completed", status: "completed", date: "2024-09-15" },
+                            { name: "First Wave Sent", status: "completed", date: "2024-10-01" },
+                            { name: "Quarterly Simulations", status: "ongoing", date: "2025-03-31" }
+                        ],
+                        tasks: [
+                            { name: "Analyze Q4 click-through rates", owner: "Security Team", dueDate: "2024-12-31" },
+                            { name: "Update training for frequent clickers", owner: "You", dueDate: "2025-01-15" }
+                        ],
+                        recentUpdate: "Q4 simulation showed 15% improvement in detection rates compared to Q3",
+                        lastUpdated: new Date().toISOString()
+                    }
+                ]
+            },
+
+            init() {
+                this.loadFromStorage();
+                this.setupEventListeners();
+                this.renderProjects();
+            },
+
+            setupEventListeners() {
+                // Orbit tabs
+                document.querySelectorAll('.orbit-tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        this.switchOrbit(e.target.dataset.orbit);
+                    });
+                });
+
+                // Add project button
+                document.getElementById('addProjectBtn').addEventListener('click', () => {
+                    this.openProjectModal();
+                });
+
+                // Generate report button
+                document.getElementById('generateReportBtn').addEventListener('click', () => {
+                    this.generateReport();
+                });
+
+                // Download PDF button
+                document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+                    this.downloadPdf();
+                });
+
+                // Modal handlers
+                document.getElementById('projectForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveProject();
+                });
+
+                document.getElementById('cancelModalBtn').addEventListener('click', () => {
+                    this.closeModal();
+                });
+
+                document.getElementById('projectModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'projectModal') {
+                        this.closeModal();
+                    }
+                });
+            },
+
+            switchOrbit(orbit) {
+                this.currentOrbit = orbit;
+                
+                // Update active tab
+                document.querySelectorAll('.orbit-tab').forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.orbit === orbit);
+                });
+
+                this.renderProjects();
+            },
+
+            renderProjects() {
+                const container = document.getElementById('projectsContainer');
+                const projects = this.projects[this.currentOrbit] || [];
+                
+                if (projects.length === 0) {
+                    container.innerHTML = '<div class="card">No projects found. Click "Add New Project" to get started.</div>';
+                    return;
+                }
+
+                container.innerHTML = projects.map(project => `
+                    <div class="project-card" data-project-id="${project.id}">
+                        <div class="project-header">
+                            <div>
+                                <h3 class="project-title">${project.name}</h3>
+                                <span class="status-badge status-${project.status}">
+                                    ${this.formatStatus(project.status)}
+                                </span>
+                            </div>
+                            <div class="flex gap-4">
+                                <button class="btn btn-secondary edit-btn" data-project-id="${project.id}">Edit</button>
+                                <button class="btn btn-primary report-btn" data-project-id="${project.id}">Report</button>
+                            </div>
+                        </div>
+                        
+                        <div class="milestones">
+                            ${project.milestones.map(milestone => `
+                                <span class="milestone milestone-${milestone.status}">
+                                    ${milestone.name} (${milestone.date})
+                                </span>
+                            `).join('')}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <strong>Current Tasks:</strong>
+                            <ul>
+                                ${project.tasks.map(task => `
+                                    <li>${task.name} - ${task.owner} - Due: ${task.dueDate}</li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="text-sm">
+                            <strong>Recent Update:</strong> ${project.recentUpdate}
+                        </div>
+                        
+                        <div class="text-sm" style="margin-top: 0.5rem; color: #64748b;">
+                            Last updated: ${new Date(project.lastUpdated).toLocaleDateString()}
+                        </div>
+                    </div>
+                `).join('');
+
+                // Add event listeners to dynamically created buttons
+                container.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const projectId = parseInt(e.target.dataset.projectId);
+                        this.editProject(projectId);
+                    });
+                });
+
+                container.querySelectorAll('.report-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const projectId = parseInt(e.target.dataset.projectId);
+                        this.generateSingleProjectReport(projectId);
+                    });
+                });
+            },
+
+            openProjectModal(project = null) {
+                this.editingProjectId = project ? project.id : null;
+                const modal = document.getElementById('projectModal');
+                const title = document.getElementById('modalTitle');
+                const form = document.getElementById('projectForm');
+
+                title.textContent = project ? 'Edit Project' : 'Add New Project';
+                
+                if (project) {
+                    document.getElementById('projectName').value = project.name;
+                    document.getElementById('projectOrbit').value = this.currentOrbit;
+                    document.getElementById('projectStatus').value = project.status;
+                    document.getElementById('projectMilestones').value = project.milestones.map(m => 
+                        `${m.name}|${m.status}|${m.date}`
+                    ).join('\n');
+                    document.getElementById('projectTasks').value = project.tasks.map(t => 
+                        `${t.name}|${t.owner}|${t.dueDate}`
+                    ).join('\n');
+                    document.getElementById('projectUpdate').value = project.recentUpdate;
+                } else {
+                    form.reset();
+                    document.getElementById('projectOrbit').value = this.currentOrbit;
+                }
+
+                modal.style.display = 'block';
+            },
+
+            closeModal() {
+                document.getElementById('projectModal').style.display = 'none';
+                this.editingProjectId = null;
+            },
+
+            saveProject() {
+                const formData = {
+                    name: document.getElementById('projectName').value,
+                    orbit: document.getElementById('projectOrbit').value,
+                    status: document.getElementById('projectStatus').value,
+                    milestones: document.getElementById('projectMilestones').value.split('\n')
+                        .filter(line => line.trim())
+                        .map(line => {
+                            const [name, status, date] = line.split('|');
+                            return { name: name?.trim(), status: status?.trim(), date: date?.trim() };
+                        }),
+                    tasks: document.getElementById('projectTasks').value.split('\n')
+                        .filter(line => line.trim())
+                        .map(line => {
+                            const [name, owner, dueDate] = line.split('|');
+                            return { name: name?.trim(), owner: owner?.trim(), dueDate: dueDate?.trim() };
+                        }),
+                    recentUpdate: document.getElementById('projectUpdate').value,
+                    lastUpdated: new Date().toISOString()
+                };
+
+                if (this.editingProjectId) {
+                    // Update existing project
+                    const orbit = this.currentOrbit;
+                    const projectIndex = this.projects[orbit].findIndex(p => p.id === this.editingProjectId);
+                    if (projectIndex !== -1) {
+                        this.projects[orbit][projectIndex] = { ...this.projects[orbit][projectIndex], ...formData };
+                    }
+                } else {
+                    // Add new project
+                    const newProject = {
+                        id: Date.now(), // Simple ID generation
+                        ...formData
+                    };
+                    this.projects[formData.orbit].push(newProject);
+                }
+
+                this.saveToStorage();
+                this.closeModal();
+                this.renderProjects();
+            },
+
+            editProject(projectId) {
+                const project = this.projects[this.currentOrbit].find(p => p.id === projectId);
+                if (project) {
+                    this.openProjectModal(project);
+                }
+            },
+
+            generateReport() {
+                const orbitName = this.currentOrbit === 'vulnerability' ? 'Vulnerability Management' : 'Security Training';
+                const projects = this.projects[this.currentOrbit];
+                
+                let report = `PROJECT ORBIT - ${orbitName.toUpperCase()} REPORT\n`;
+                report += `Generated: ${new Date().toLocaleString()}\n`;
+                report += '='.repeat(50) + '\n\n';
+                
+                projects.forEach((project, index) => {
+                    report += `PROJECT ${index + 1}: ${project.name}\n`;
+                    report += `Status: ${this.formatStatus(project.status)}\n`;
+                    report += `Last Updated: ${new Date(project.lastUpdated).toLocaleDateString()}\n\n`;
+                    
+                    report += 'MILESTONES:\n';
+                    project.milestones.forEach(milestone => {
+                        report += `  • ${milestone.name} (${milestone.status}) - ${milestone.date}\n`;
+                    });
+                    
+                    report += '\nCURRENT TASKS:\n';
+                    project.tasks.forEach(task => {
+                        report += `  • ${task.name} - ${task.owner} - Due: ${task.dueDate}\n`;
+                    });
+                    
+                    report += `\nRECENT UPDATE: ${project.recentUpdate}\n`;
+                    report += '\n' + '-'.repeat(40) + '\n\n';
+                });
+
+                // Show report preview
+                document.getElementById('reportPreview').textContent = report;
+                document.getElementById('reportSection').classList.remove('hidden');
+                
+                // Scroll to report section
+                document.getElementById('reportSection').scrollIntoView({ behavior: 'smooth' });
+            },
+
+            generateSingleProjectReport(projectId) {
+                const project = this.projects[this.currentOrbit].find(p => p.id === projectId);
+                if (!project) return;
+
+                const orbitName = this.currentOrbit === 'vulnerability' ? 'Vulnerability Management' : 'Security Training';
+                
+                let report = `PROJECT ORBIT - SINGLE PROJECT REPORT\n`;
+                report += `Orbit: ${orbitName}\n`;
+                report += `Generated: ${new Date().toLocaleString()}\n`;
+                report += '='.repeat(50) + '\n\n';
+                
+                report += `PROJECT: ${project.name}\n`;
+                report += `Status: ${this.formatStatus(project.status)}\n`;
+                report += `Last Updated: ${new Date(project.lastUpdated).toLocaleDateString()}\n\n`;
+                
+                report += 'MILESTONES:\n';
+                project.milestones.forEach(milestone => {
+                    report += `  • ${milestone.name} (${milestone.status}) - ${milestone.date}\n`;
+                });
+                
+                report += '\nCURRENT TASKS:\n';
+                project.tasks.forEach(task => {
+                    report += `  • ${task.name} - ${task.owner} - Due: ${task.dueDate}\n`;
+                });
+                
+                report += `\nRECENT UPDATE: ${project.recentUpdate}\n`;
+
+                // Show report preview
+                document.getElementById('reportPreview').textContent = report;
+                document.getElementById('reportSection').classList.remove('hidden');
+                document.getElementById('reportSection').scrollIntoView({ behavior: 'smooth' });
+            },
+
+            downloadPdf() {
+                const reportContent = document.getElementById('reportPreview').textContent;
+                const blob = new Blob([reportContent], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `project-orbit-report-${new Date().toISOString().split('T')[0]}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            },
+
+            formatStatus(status) {
+                const statusMap = {
+                    'active': 'Active',
+                    'planning': 'Planning',
+                    'bau': 'Business as Usual',
+                    'completed': 'Completed'
+                };
+                return statusMap[status] || status;
+            },
+
+            saveToStorage() {
+                localStorage.setItem('projectOrbitData', JSON.stringify(this.projects));
+            },
+
+            loadFromStorage() {
+                const saved = localStorage.getItem('projectOrbitData');
+                if (saved) {
+                    this.projects = JSON.parse(saved);
+                }
+            }
+        };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            ProjectOrbit.init();
+        });
+    </script>
+</body>
+</html>
