@@ -5,25 +5,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Orbit - Initiative Management Platform</title>
     <style>
+        /* CSS Variables for Theme Switching */
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
         /* Reset and Base Styles */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            background: #f8fafc; 
-            color: #1e293b; 
-            line-height: 1.6; 
+            background: var(--bg-primary); 
+            color: var(--text-primary); 
+            line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
         }
         
         /* Layout */
         .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
         .header { 
-            background: white; 
+            background: var(--bg-secondary); 
             padding: 1rem 0; 
-            border-bottom: 1px solid #e2e8f0; 
+            border-bottom: 1px solid var(--border-color); 
             margin-bottom: 2rem; 
         }
         .nav { display: flex; gap: 1rem; margin-bottom: 2rem; }
         
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+        }
+
         /* Components */
         .btn { 
             padding: 0.5rem 1rem; 
@@ -39,21 +78,24 @@
         .btn-secondary:hover { background: #475569; }
         
         .card { 
-            background: white; 
+            background: var(--bg-secondary); 
             border-radius: 8px; 
             padding: 1.5rem; 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+            box-shadow: var(--shadow); 
             margin-bottom: 1rem; 
+            border: 1px solid var(--border-color);
+            transition: background-color 0.3s, border-color 0.3s;
         }
         
         /* Orbit Navigation */
         .orbit-tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
         .orbit-tab { 
             padding: 0.75rem 1.5rem; 
-            border: 1px solid #e2e8f0; 
-            background: white; 
+            border: 1px solid var(--border-color); 
+            background: var(--bg-secondary); 
             border-radius: 6px; 
             cursor: pointer; 
+            transition: all 0.3s;
         }
         .orbit-tab.active { 
             background: #3b82f6; 
@@ -69,10 +111,11 @@
             margin-bottom: 2rem; 
         }
         .project-card { 
-            background: white; 
+            background: var(--bg-secondary); 
             border-radius: 8px; 
             padding: 1.5rem; 
-            border: 1px solid #e2e8f0; 
+            border: 1px solid var(--border-color); 
+            transition: all 0.3s;
         }
         .project-header { 
             display: flex; 
@@ -117,34 +160,40 @@
             z-index: 1000; 
         }
         .modal-content { 
-            background: white; 
+            background: var(--bg-secondary); 
             margin: 5% auto; 
             padding: 2rem; 
             border-radius: 8px; 
             max-width: 500px; 
             max-height: 80vh; 
             overflow-y: auto; 
+            border: 1px solid var(--border-color);
+            transition: background-color 0.3s;
         }
         .form-group { margin-bottom: 1rem; }
         .form-label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
         .form-input, .form-select, .form-textarea { 
             width: 100%; 
             padding: 0.5rem; 
-            border: 1px solid #d1d5db; 
+            border: 1px solid var(--border-color); 
             border-radius: 4px; 
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: all 0.3s;
         }
         .form-textarea { min-height: 100px; resize: vertical; }
         
         /* Report Section */
         .report-section { margin: 2rem 0; }
         .report-preview { 
-            background: #f8fafc; 
-            border: 1px solid #e2e8f0; 
+            background: var(--bg-primary); 
+            border: 1px solid var(--border-color); 
             border-radius: 6px; 
             padding: 1.5rem; 
             margin: 1rem 0; 
             white-space: pre-wrap; 
             font-family: monospace; 
+            transition: all 0.3s;
         }
         
         /* Utility Classes */
@@ -160,6 +209,11 @@
     </style>
 </head>
 <body>
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" id="themeToggle" title="Toggle dark mode">
+        🌙
+    </button>
+
     <div class="header">
         <div class="container">
             <h1>🚀 Project Orbit</h1>
@@ -251,6 +305,7 @@
         const ProjectOrbit = {
             currentOrbit: 'vulnerability',
             editingProjectId: null,
+            currentTheme: 'light',
             
             // Sample data - your 4 projects
             projects: {
@@ -326,11 +381,17 @@
 
             init() {
                 this.loadFromStorage();
+                this.loadTheme();
                 this.setupEventListeners();
                 this.renderProjects();
             },
 
             setupEventListeners() {
+                // Theme toggle
+                document.getElementById('themeToggle').addEventListener('click', () => {
+                    this.toggleTheme();
+                });
+
                 // Orbit tabs
                 document.querySelectorAll('.orbit-tab').forEach(tab => {
                     tab.addEventListener('click', (e) => {
@@ -368,6 +429,29 @@
                         this.closeModal();
                     }
                 });
+            },
+
+            toggleTheme() {
+                this.currentTheme = this.currentTheme === 'light' ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', this.currentTheme);
+                this.updateThemeToggle();
+                this.saveTheme();
+            },
+
+            updateThemeToggle() {
+                const toggle = document.getElementById('themeToggle');
+                toggle.textContent = this.currentTheme === 'light' ? '🌙' : '☀️';
+            },
+
+            loadTheme() {
+                const savedTheme = localStorage.getItem('projectOrbitTheme') || 'light';
+                this.currentTheme = savedTheme;
+                document.documentElement.setAttribute('data-theme', this.currentTheme);
+                this.updateThemeToggle();
+            },
+
+            saveTheme() {
+                localStorage.setItem('projectOrbitTheme', this.currentTheme);
             },
 
             switchOrbit(orbit) {
@@ -426,7 +510,7 @@
                             <strong>Recent Update:</strong> ${project.recentUpdate}
                         </div>
                         
-                        <div class="text-sm" style="margin-top: 0.5rem; color: #64748b;">
+                        <div class="text-sm" style="margin-top: 0.5rem; color: var(--text-secondary);">
                             Last updated: ${new Date(project.lastUpdated).toLocaleDateString()}
                         </div>
                     </div>
